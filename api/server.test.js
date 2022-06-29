@@ -1,62 +1,79 @@
-const request = require('supertest')
-const server = require('./server')
-const db = require('../data/dbConfig')
+const request = require("supertest");
+const server = require("./server");
+const db = require("../data/dbConfig");
 
-const userA= {username: 'foo', password: 'bar', id: 1}
-const userB= {username: 'foo', password: 'baluga', id: 1}
+const userA = { username: "foo", password: "bar", id: 1 };
+const userB = { username: "foo", password: "baluga", id: 1 };
+
+beforeAll(async () => {
+  await db.migrate.rollback();
+  await db.migrate.latest();
+});
+
+afterAll(async () => {
+  await db.destroy();
+});
 
 test("sanity", () => {
   expect(true).toBe(true);
 });
 
-beforeAll(async ()=> {
-  await db.migrate.rollback()
-  await db.migrate.latest()
+it("sanity check jokes", () => {
+  expect(true).not.toBe(false);
+});
 
-})
+describe("/register endpoint", () => {
+  beforeEach(async () => {
+    await db("users").truncate();
+  });
+  it("Registers", async () => {
+    const response = await request(server)
+      .post("/api/auth/register")
+      .send(user);
+    expect(response.body).toHaveProperty("id");
+    expect(response.body).toHaveProperty("username");
+    expect(response.body).toHaveProperty("password");
+  });
+  it("Fails with a missing password", async () => {
+    const response = await request(server)
+      .post("/api/auth/register")
+      .send(noPassword);
+    expect(response.body).toBe("username and password required");
+  });
+});
 
-afterAll(async ()=> {
-  await db.destroy()
-})
+describe("/login endpoint", () => {
+  beforeEach(async () => {
+    await db("users").truncate();
+  });
+  it("Logs in with registered user", async () => {
+    await request(server).post("/api/auth/register").send(user);
+    const response = await request(server).post("/api/auth/login").send(user);
+    expect(response.body).toHaveProperty("message");
+    expect(response.body).toHaveProperty("token");
+  });
+  it("Will not log in an unregistered user", async () => {
+    const response = await request(server).post("/api/auth/login").send(user);
+    expect(response.body).toBe("invalid credentials");
+  });
+});
 
-it('sanity check jokes', ()=> {
-  expect(true).not.toBe(false)
-})
-
-describe('server.js', () => {
-  // 👉 Projects
-  // 👉 Projects
-  // 👉 Projects
-
-  describe('auth endpoints', ()=> {
-    beforeEach(async => {
-      await db('users').truncate()
-    })
-    it('adds a new user with a bcrypted password to the users table on success', async ()=> {
-      await request(server).post('/api/auth/register').send(userA)
-      const user = await db('users').first()
-      expect(user).toHaveProperty('id')
-      expect(user).toHaveProperty('username')
-      expect(user).toHaveProperty('password')
-      expect(user.username).toBe(userA.username)
-    })
-  })
-  describe('[POST] /api/auth/login', () => {
-    beforeEach(async => {
-      await db('users').truncate()
-      await request(server).post('/api/auth/register').send(userA)
-    })
-    it('responds with a proper status code on successful login', async () => {
-      const res = await (await request(server).post('/api/auth/login')).send(userA)
-      expect(res.status).toBe(200)
-    })
-
-    it('fails login with an invalid password and returns 403', async ()=> {
-      const res = await (await request(server).post('/api/auth/login')).send(userB)
-      expect(res.status).toBe(403)
-    })
-    it('responds with a welcoe messsage and a token on successful login', async () => {
-      const res = await request(server).post('/api/auth/login')
-    })
-  })
-})
+describe("/jokes endpoint", () => {
+  beforeEach(async () => {
+    await db("users").truncate();
+    await request(server).post("/api/auth/register").send(user);
+  });
+  it("gives 200 status on success", async () => {
+    const {
+      body: { token },
+    } = await request(server).post("/api/auth/login").send(user);
+    const res = await request(server)
+      .get("/api/jokes")
+      .set("Authorization", token);
+    expect(res.status).toBe(200);
+  });
+  it("requires token", async () => {
+    const response = await request(server).get("/api/jokes");
+    expect(response.body).toBe("token required");
+  });
+});
