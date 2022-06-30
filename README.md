@@ -21,6 +21,8 @@ Users must be able to call the `[POST] /api/auth/register` endpoint to create a 
 and the `[POST] /api/auth/login` endpoint to get a token
 (NOTE: REQUIRE `jsonwebtoken` - in the router(?)).
 
+Note: no middleware needed to complete jokes router(?)
+
 We also need to make sure nobody without the token can call `[GET] /api/jokes` and gain access to our dad jokes. NOTE: WRITE A MIDDLEWARE TO DO THIS. See MVP(2)
 
 We will hash the user's password using `bcryptjs`, and use JSON Web Tokens and the `jsonwebtoken` library.
