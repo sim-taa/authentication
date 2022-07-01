@@ -1,7 +1,11 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { checkNewUser, authenticateUser } = require("./auth-middleware");
+const {
+  checkNewUser,
+  authenticateUser,
+  validateCredentialsPresent,
+} = require("./auth-middleware");
 const User = require("../users/user-model");
 /*
     IMPLEMENT
@@ -61,14 +65,19 @@ router.post("/register", checkNewUser, async (req, res, next) => {
     4- On FAILED login due to `username` not existing in the db, or `password` being incorrect,
       the response body should include a string exactly as follows: "invalid credentials".
   */
-router.post("/login", authenticateUser, (req, res) => {
-  console.log("hello from auth-router");
-  // try {
-  // } catch (error) {
-  //   res.status(500).json({
-  //     message: "failed to log in",
-  //   });
-  // }
-});
+router.post(
+  "/login",
+  validateCredentialsPresent,
+  authenticateUser,
+  (req, res) => {
+    console.log("hello from auth-router");
+    // try {
+    // } catch (error) {
+    //   res.status(500).json({
+    //     message: "failed to log in",
+    //   });
+    // }
+  }
+);
 
 module.exports = router;

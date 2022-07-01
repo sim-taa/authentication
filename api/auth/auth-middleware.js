@@ -41,9 +41,16 @@ async function authenticateUser(req, res, next) {
   }
 }
 
-async function validateCredentialsPresent(req, res, next) {}
+async function validateCredentialsPresent(req, res, next) {
+  if (req.body.username && req.body.password) {
+    next();
+  } else {
+    res.json({ message: "username and password required" });
+  }
+}
 
 module.exports = {
   checkNewUser,
   authenticateUser,
+  validateCredentialsPresent,
 };
