@@ -48,12 +48,12 @@ describe("/login endpoint", () => {
   });
   it("Logs in with registered user", async () => {
     await request(server).post("/api/auth/register").send(user);
-    const response = await request(server).post("/api/auth/login").send(user);
+    const response = await request(server).post("/api/auth/login").send(userA);
     expect(response.body).toHaveProperty("message");
     expect(response.body).toHaveProperty("token");
   });
   it("Will not log in an unregistered user", async () => {
-    const response = await request(server).post("/api/auth/login").send(user);
+    const response = await request(server).post("/api/auth/login").send(userB);
     expect(response.body).toBe("invalid credentials");
   });
 });
@@ -61,12 +61,12 @@ describe("/login endpoint", () => {
 describe("/jokes endpoint", () => {
   beforeEach(async () => {
     await db("users").truncate();
-    await request(server).post("/api/auth/register").send(user);
+    await request(server).post("/api/auth/register").send(userA);
   });
   it("gives 200 status on success", async () => {
     const {
       body: { token },
-    } = await request(server).post("/api/auth/login").send(user);
+    } = await request(server).post("/api/auth/login").send(userA);
     const res = await request(server)
       .get("/api/jokes")
       .set("Authorization", token);
