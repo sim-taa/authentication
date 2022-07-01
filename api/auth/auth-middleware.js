@@ -37,7 +37,7 @@ async function authenticateUser(req, res, next) {
     const token = generateToken(user);
     res.json({ message: `welcome, ${user.username}`, token: token });
   } else {
-    res.json({ message: "invalid credentials" });
+    res.status(403).json({ message: "invalid credentials" });
   }
 }
 
@@ -45,7 +45,7 @@ async function validateCredentialsPresent(req, res, next) {
   if (req.body.username && req.body.password) {
     next();
   } else {
-    res.json({ message: "username and password required" });
+    res.status(400).json({ message: "username and password required" });
   }
 }
 
