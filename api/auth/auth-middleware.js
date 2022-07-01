@@ -3,11 +3,11 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 async function checkNewUser(req, res, next) {
-  const user = await Users.getByUsername(req.body);
-  if (found) {
+  const user = await Users.getByUsername(req.body.username);
+  if (user) {
     res.json({ message: "username taken" });
   } else {
-    console.log("stopping point for now");
+    next();
   }
 }
 /*
