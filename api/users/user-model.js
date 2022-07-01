@@ -11,6 +11,5 @@ async function createUser(user) {
 
 async function getByUsername(username) {
   const found = await db("users").where({ username: username }).first();
-  console.log(found, "found from inside model");
   return found;
 }

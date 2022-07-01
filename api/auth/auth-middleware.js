@@ -1,6 +1,8 @@
 const Users = require("../users/user-model.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const secrets = require("../../config/secrets.js");
+const { token } = require("morgan");
 
 async function checkNewUser(req, res, next) {
   const user = await Users.getByUsername(req.body.username);
@@ -10,32 +12,38 @@ async function checkNewUser(req, res, next) {
     next();
   }
 }
-/*
-    IMPLEMENT
-    You are welcome to build additional middlewares to help with the endpoint's functionality.
-    DO NOT EXCEED 2^8 ROUNDS OF HASHING!
 
-    1- In order to register a new account the client must provide `username` and `password`:
-      {
-        "username": "Captain Marvel", // must not exist already in the `users` table
-        "password": "foobar"          // needs to be hashed before it's saved
-      }
+function generateToken(user) {
+  const payload = {
+    subject: user.id, // sub in payload is what the token is about
+    username: user.username,
+    // ...otherData
+  };
 
-    2- On SUCCESSFUL registration,
-      the response body should have `id`, `username` and `password`:
-      {
-        "id": 1,
-        "username": "Captain Marvel",
-        "password": "2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG"
-      }
+  const options = {
+    expiresIn: "1d", // show other available options in the library's documentation
+  };
 
-    3- On FAILED registration due to `username` or `password` missing from the request body,
-      the response body should include a string exactly as follows: "username and password required".
+  // extract the secret away so it can be required and used where needed
+  return jwt.sign(payload, secrets.jwtSecret, options); // this method is synchronous
+}
 
-    4- On FAILED registration due to the `username` being taken,
-      the response body should include a string exactly as follows: "username taken".
-  */
+async function authenticateUser(req, res, next) {
+  const user = await Users.getByUsername(req.body.username);
+  const providedPassword = req.body.password;
+  const hashedPasswordFromDb = user.password;
+
+  if (bcrypt.compareSync(providedPassword, hashedPasswordFromDb)) {
+    const token = generateToken(user);
+    res.json({ message: `welcome, ${user.username}`, token: token });
+  } else {
+    res.json({ message: "invalid credentials" });
+  }
+}
+
+async function validateCredentialsPresent(req, res, next) {}
 
 module.exports = {
   checkNewUser,
+  authenticateUser,
 };
