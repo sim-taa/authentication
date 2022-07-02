@@ -7,7 +7,7 @@ const { token } = require("morgan");
 async function checkNewUser(req, res, next) {
   const user = await Users.getByUsername(req.body.username);
   if (user) {
-    res.json({ message: "username taken" });
+    res.status(400).json({ message: "username taken" });
   } else {
     next();
   }
