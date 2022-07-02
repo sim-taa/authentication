@@ -28,20 +28,25 @@ const User = require("../users/user-model");
     4- On FAILED registration due to the `username` being taken,
       the response body should include a string exactly as follows: "username taken".
   */
-router.post("/register", checkNewUser, async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
-    const user = await User.createUser({
-      username: username,
-      password: bcrypt.hashSync(password, 8),
-    });
-    res.status(201).json(user);
-  } catch (error) {
-    res.status(400).json({
-      message: "username and password required",
-    });
+router.post(
+  "/register",
+  validateCredentialsPresent,
+  checkNewUser,
+  async (req, res, next) => {
+    try {
+      const { username, password } = req.body;
+      const user = await User.createUser({
+        username: username,
+        password: bcrypt.hashSync(password, 8),
+      });
+      res.status(201).json(user);
+    } catch (error) {
+      res.status(400).json({
+        message: "username and password required",
+      });
+    }
   }
-});
+);
 /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
