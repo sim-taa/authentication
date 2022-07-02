@@ -11,8 +11,7 @@ module.exports = (req, res, next) => {
   jwt.verify(token, JWT_SECRET.jwtSecret, (err, decodedToken) => {
     if (err) {
       console.log("start", err);
-      // return res.status(401).json({ message: "token invalid" });
-      next({ status: 401, message: "token invalid" });
+      return res.status(401).json({ message: "token invalid" });
     } else {
       console.log(decodedToken);
       req.decodedToken = decodedToken;
