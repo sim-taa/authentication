@@ -30,6 +30,9 @@ function generateToken(user) {
 
 async function authenticateUser(req, res, next) {
   const user = await Users.getByUsername(req.body.username);
+  if (user == undefined) {
+    return res.status(404).json({ message: "invalid credentials" });
+  }
   const providedPassword = req.body.password;
   const hashedPasswordFromDb = user.password;
 
